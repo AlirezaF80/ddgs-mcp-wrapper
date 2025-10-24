@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "ddgs-search": {
+      "command": "python",
+      "args": [
+        "d:\\MCP Servers\\ddgs-mcp-wrapper\\server.py"
+      ],
+      "env": {
+        "DDGS_PROXY": ""
+      }
+    }
+  }
+}

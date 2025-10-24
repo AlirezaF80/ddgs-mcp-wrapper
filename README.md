@@ -1,0 +1,275 @@
+# DDGS MCP Server
+
+A Model Context Protocol (MCP) server that wraps the [DDGS (Dux Distributed Global Search)](https://github.com/deedy5/ddgs) library, providing AI agents with powerful web search capabilities across multiple search engines.
+
+## Features
+
+### Search Types
+- **Text Search**: Web search across Bing, Brave, DuckDuckGo, Google, Mojeek, Yahoo, Wikipedia, and more
+- **Image Search**: Search images with filters for size, color, type, layout, and license
+- **Video Search**: Find videos with resolution, duration, and license filters
+- **News Search**: Search news articles from multiple sources
+- **Book Search**: Search books across Anna's Archive
+
+### Advanced Capabilities
+- **Multiple Search Engines**: Automatic fallback between backends for reliability
+- **Search Operators**: Support for filetype:, site:, intitle:, inurl:, and boolean operators
+- **Regional Search**: Support for country-language combinations (us-en, uk-en, cn-zh, etc.)
+- **Proxy Support**: HTTP/HTTPS/SOCKS5 proxies, including Tor browser integration
+- **Flexible Filtering**: Safesearch, time limits, and content-specific filters
+
+## Installation
+
+### Prerequisites
+- Python 3.9 or higher
+- pip
+
+### Setup
+
+1. **Clone or navigate to the repository**:
+   ```powershell
+   cd "d:\MCP Servers\ddgs-mcp-wrapper"
+   ```
+
+2. **Create a virtual environment** (recommended):
+   ```powershell
+   python -m venv venv
+   .\venv\Scripts\Activate.ps1
+   ```
+
+3. **Install dependencies**:
+   ```powershell
+   pip install -r requirements.txt
+   ```
+
+   Or install directly:
+   ```powershell
+   pip install mcp ddgs pydantic
+   ```
+
+## Usage
+
+### Running the Server
+
+#### Standalone
+```powershell
+python server.py
+```
+
+#### With MCP Client Configuration
+Add to your MCP client configuration (e.g., Claude Desktop, Cline, etc.):
+
+**For Claude Desktop** (`%APPDATA%\Claude\claude_desktop_config.json`):
+```json
+{
+  "mcpServers": {
+    "ddgs-search": {
+      "command": "python",
+      "args": ["d:\\MCP Servers\\ddgs-mcp-wrapper\\server.py"],
+      "env": {
+        "DDGS_PROXY": ""
+      }
+    }
+  }
+}
+```
+
+**For Cline** (`.vscode/settings.json`):
+```json
+{
+  "mcp.servers": {
+    "ddgs-search": {
+      "command": "python",
+      "args": ["d:\\MCP Servers\\ddgs-mcp-wrapper\\server.py"]
+    }
+  }
+}
+```
+
+### Using with UV (Alternative)
+
+If you prefer using `uv`:
+```powershell
+uvx --from mcp ddgs-mcp-server
+```
+
+## Available Tools
+
+### 1. ddgs_text_search
+Search the web for text content.
+
+**Parameters**:
+- `query` (required): Search query with optional operators
+- `region`: Region code (default: "us-en")
+- `safesearch`: "on", "moderate", or "off" (default: "moderate")
+- `timelimit`: "d" (day), "w" (week), "m" (month), "y" (year)
+- `max_results`: Maximum results (1-100, default: 10)
+- `backend`: "auto" or comma-separated backends (default: "auto")
+- `proxy`: Proxy URL or "tb" for Tor browser
+
+**Example**:
+```json
+{
+  "query": "python machine learning filetype:pdf",
+  "region": "us-en",
+  "max_results": 20,
+  "timelimit": "y"
+}
+```
+
+### 2. ddgs_image_search
+Search for images with filters.
+
+**Parameters**:
+- `query` (required): Image search query
+- `region`, `safesearch`, `timelimit`, `max_results`: Same as text search
+- `size`: "Small", "Medium", "Large", "Wallpaper"
+- `color`: "color", "Monochrome", "Red", "Orange", "Yellow", "Green", "Blue", etc.
+- `type_image`: "photo", "clipart", "gif", "transparent", "line"
+- `layout`: "Square", "Tall", "Wide"
+- `license_image`: "any", "Public", "Share", "ShareCommercially", "Modify", "ModifyCommercially"
+
+### 3. ddgs_video_search
+Search for videos.
+
+**Parameters**:
+- `query` (required): Video search query
+- `region`, `safesearch`, `timelimit`, `max_results`: Same as text search
+- `resolution`: "high" or "standard"
+- `duration`: "short", "medium", "long"
+- `license_videos`: "creativeCommon", "youtube"
+
+### 4. ddgs_news_search
+Search news articles.
+
+**Parameters**:
+- `query` (required): News search query
+- `region`, `safesearch`, `timelimit`, `max_results`: Same as text search
+- `backend`: "auto", "bing", "duckduckgo", "yahoo"
+
+### 5. ddgs_book_search
+Search for books.
+
+**Parameters**:
+- `query` (required): Book search query (title, author, ISBN)
+- `max_results`: Maximum results (1-100, default: 10)
+
+## Search Operators
+
+The text search supports advanced operators:
+
+| Operator | Description |
+|----------|-------------|
+| `cats dogs` | Results about cats OR dogs |
+| `"exact phrase"` | Exact match for phrase |
+| `cats -dogs` | Fewer dogs in results |
+| `cats +dogs` | More dogs in results |
+| `filetype:pdf` | Specific file type (pdf, doc, xls, ppt, html) |
+| `site:example.com` | Results from specific domain |
+| `-site:example.com` | Exclude specific domain |
+| `intitle:keyword` | Keyword in page title |
+| `inurl:keyword` | Keyword in URL |
+
+## Proxy Configuration
+
+### Using Tor Browser
+```json
+{
+  "proxy": "tb"
+}
+```
+
+Or set the environment variable:
+```powershell
+$env:DDGS_PROXY = "socks5h://127.0.0.1:9150"
+```
+
+### Using Custom Proxy
+```json
+{
+  "proxy": "http://user:pass@proxy.example.com:8080"
+}
+```
+
+Supported protocols: `http://`, `https://`, `socks5://`, `socks5h://`
+
+## Development
+
+### Project Structure
+```
+ddgs-mcp-wrapper/
+├── server.py           # Main MCP server implementation
+├── pyproject.toml      # Project configuration
+├── requirements.txt    # Python dependencies
+├── README.md          # This file
+└── .gitignore         # Git ignore rules
+```
+
+### Testing the Server
+
+Test with an MCP client or using the MCP Inspector:
+```powershell
+npm install -g @modelcontextprotocol/inspector
+mcp-inspector python server.py
+```
+
+### Debugging
+
+Enable debug logging by modifying `server.py`:
+```python
+logging.basicConfig(level=logging.DEBUG)
+```
+
+## Tips for AI Agents
+
+1. **Use `backend='auto'`**: Automatically handles temporary backend unavailability
+2. **Specify regions**: Better search quality with region codes like `ar-es`, `pl-pl`, `cn-zh`
+3. **Iterate through pages**: Single queries return results from page 1; iterate for more
+4. **Use search operators**: Combine operators for precise results (e.g., `"machine learning" filetype:pdf site:.edu`)
+5. **Proxy for blocked regions**: Use proxy if backends are rate-limited or blocked in your country
+
+## Troubleshooting
+
+### Common Issues
+
+**"Module not found" errors**:
+```powershell
+pip install --upgrade mcp ddgs pydantic
+```
+
+**Rate limiting**:
+- Use `backend='auto'` to cycle through engines
+- Add delays between requests
+- Use a proxy or Tor browser
+
+**Import errors**:
+```powershell
+# Verify installation
+pip list | Select-String -Pattern "mcp|ddgs|pydantic"
+```
+
+**Connection timeout**:
+- Increase timeout in `get_ddgs_instance()` call
+- Check proxy configuration
+- Try different backends
+
+## License
+
+MIT License - feel free to use in your projects.
+
+## Contributing
+
+Contributions welcome! Please:
+1. Fork the repository
+2. Create a feature branch
+3. Submit a pull request
+
+## Resources
+
+- [MCP Documentation](https://modelcontextprotocol.io/)
+- [DDGS Library](https://github.com/deedy5/ddgs)
+- [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk)
+
+## Disclaimer
+
+This server is for educational and research purposes. Respect search engine terms of service and rate limits.
